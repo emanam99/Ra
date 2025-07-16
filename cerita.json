@@ -1,0 +1,36 @@
+{
+  "sections": [
+    {
+      "title": "Bagian 1",
+      "image": "Section1.jpeg"
+    },
+    {
+      "title": "Bagian 2",
+      "image": "https://source.unsplash.com/1600x900/?natural-landscape"
+    },
+    {
+      "title": "Bagian 3",
+      "image": "Section3.jpeg"
+    },
+    {
+      "title": "Bagian 4",
+      "image": ""
+    },
+    {
+      "title": "Bagian 5",
+      "image": ""
+    },
+    {
+      "title": "Bagian 6",
+      "image": ""
+    },
+    {
+      "title": "Bagian 7",
+      "image": ""
+    },
+    {
+      "title": "Bagian 8",
+      "image": ""
+    }
+  ]
+}

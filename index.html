@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Cerita Fantasi - Untuk Ra</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    * {margin: 0; padding: 0; box-sizing: border-box;}
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(135deg, #232526 0%, #1c1c1c 100%);
+      color: #fff;
+      overflow-x: hidden;
+    }
+    .section {
+      display: none;
+      flex-direction: column;
+      justify-content: flex-start;
+      align-items: center;
+      padding: 2.5rem 2rem 1.5rem 2rem;
+      text-align: left;
+      transition: opacity 1s ease;
+    }
+    .section.active {
+      display: flex;
+    }
+    .section img {
+      max-width: 90%;
+      max-height: 50vh;
+      margin-bottom: 2rem;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+      background: linear-gradient(135deg, #232526 0%, #414345 100%);
+      display: block;
+    }
+    .section h2 {
+      font-size: 2rem;
+      margin-bottom: 1rem;
+      text-align: left;
+      width: 100%;
+    }
+    .section p {
+      font-size: 1.1rem;
+      max-width: 700px;
+      line-height: 1.7;
+      text-align: left;
+      text-indent: 2em;
+      margin-bottom: 1.2em;
+    }
+    .hidden { opacity: 0; pointer-events: none; }
+    .fadeIn { animation: fadeIn 1s ease forwards; }
+    .slideIn { animation: slideIn 1s ease forwards; }
+    .zoomIn { animation: zoomIn 1s ease forwards; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(30px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-50px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+    @keyframes zoomIn {
+      from { opacity: 0; transform: scale(0.9); }
+      to { opacity: 1; transform: scale(1); }
+    }
+
+    .nav-button {
+      position: fixed;
+      bottom: 30px;
+      right: 30px;
+      background: #fff;
+      color: #000;
+      border: none;
+      border-radius: 50%;
+      width: 60px;
+      height: 60px;
+      font-size: 2rem;
+      cursor: pointer;
+      box-shadow: 0 4px 15px rgba(255,255,255,0.2);
+    }
+    .paragraf {
+      display: block;
+      text-indent: 2em;
+    }
+    .nav-icon-button {
+      background: #fff;
+      color: #232526;
+      border: none;
+      border-radius: 50%;
+      width: 54px;
+      height: 54px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 15px rgba(255,255,255,0.12);
+      cursor: pointer;
+      transition: background 0.2s, color 0.2s, box-shadow 0.2s;
+      font-size: 1.5rem;
+      margin: 0 0.2rem;
+    }
+    .nav-icon-button:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .nav-icon-button svg {
+      display: block;
+      stroke: #232526;
+    }
+  </style>
+</head>
+<body>
+  <div id="story"></div>
+  <canvas id="love-bubbles" style="position:fixed; left:0; top:0; width:100vw; height:100vh; pointer-events:none; z-index:0;"></canvas>
+
+  <script>
+    const animations = ['fadeIn', 'slideIn', 'zoomIn'];
+    let currentSection = 0;
+    let data = { sections: [] };
+
+    // Tambahkan anime.js dari CDN
+    const animeScript = document.createElement('script');
+    animeScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js';
+    document.head.appendChild(animeScript);
+
+    async function loadStory() {
+      try {
+        // Fetch cerita.json for titles and images
+        const resJson = await fetch('cerita.json');
+        data = await resJson.json();
+        if (!data.sections || !Array.isArray(data.sections)) {
+          throw new Error('Data format salah: "sections" tidak ditemukan atau bukan array');
+        }
+
+        // Fetch cerita.md for story text
+        const resMd = await fetch('cerita.md');
+        const mdText = await resMd.text();
+
+        // Parse cerita.md into paragraphs
+        const paragraphs = mdText
+          .split(/\n+/)
+          .map((t) => t.trim())
+          .filter(Boolean);
+
+        // Split paragraphs into sections every 500 words
+        let storySections = [];
+        let currentSectionParagraphs = [];
+        let wordCount = 0;
+
+        function countWords(text) {
+          return text.trim().split(/\s+/).length;
+        }
+
+        for (const para of paragraphs) {
+          const paraWordCount = countWords(para);
+          if (wordCount + paraWordCount > 500 && currentSectionParagraphs.length > 0) {
+            storySections.push(currentSectionParagraphs);
+            currentSectionParagraphs = [];
+            wordCount = 0;
+          }
+          currentSectionParagraphs.push(para);
+          wordCount += paraWordCount;
+        }
+        if (currentSectionParagraphs.length > 0) {
+          storySections.push(currentSectionParagraphs);
+        }
+
+        // Now combine data.sections with storySections
+        // Use the minimum length to avoid index errors
+        const sectionCount = Math.min(data.sections.length, storySections.length);
+
+        const container = document.getElementById('story');
+        container.innerHTML = '';
+
+        for (let i = 0; i < sectionCount; i++) {
+          const section = data.sections[i];
+          const paras = storySections[i];
+
+          const div = document.createElement('div');
+          div.className = 'section hidden';
+          div.id = 'section-' + i;
+
+          const img = document.createElement('img');
+          img.src = section.image || '';
+
+          const title = document.createElement('h2');
+          title.textContent = section.title || '';
+
+          const para = document.createElement('p');
+          para.innerHTML = paras.map((t) => `<span class='paragraf'>${t}</span>`).join('</p><p>');
+
+          div.appendChild(img);
+          div.appendChild(title);
+          div.appendChild(para);
+
+          // Navigation buttons
+          const nav = document.createElement('div');
+          nav.className = 'nav-buttons-inner';
+          nav.style.display = 'flex';
+          nav.style.justifyContent = 'center';
+          nav.style.gap = '1.2rem';
+          nav.style.marginTop = '1.2rem';
+          nav.innerHTML = `
+            <button id="prev-btn-${i}" class="nav-icon-button" aria-label="Sebelumnya">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+            <button id="next-btn-${i}" class="nav-icon-button" aria-label="Selanjutnya">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 6 15 12 9 18"></polyline></svg>
+            </button>
+          `;
+          div.appendChild(nav);
+          container.appendChild(div);
+        }
+
+        showSection(0, null);
+      } catch (err) {
+        console.error('Gagal memuat cerita:', err);
+        document.getElementById('story').innerHTML =
+          '<p style="text-align:center; padding:2rem;">Gagal memuat cerita. Periksa koneksi atau struktur file JSON/MD.</p>';
+      }
+    }
+
+    function showSection(index, direction) {
+      const sections = document.querySelectorAll('.section');
+      sections.forEach((sec, i) => {
+        sec.classList.remove('active');
+        sec.classList.add('hidden');
+        sec.style.opacity = 0;
+        sec.style.transform = 'translateX(0)';
+        // Sembunyikan tombol di semua section
+        const prevBtn = sec.querySelector('.nav-icon-button[id^="prev-btn-"]');
+        const nextBtn = sec.querySelector('.nav-icon-button[id^="next-btn-"]');
+        if (prevBtn) prevBtn.style.visibility = 'hidden';
+        if (nextBtn) nextBtn.style.visibility = 'hidden';
+      });
+      const active = document.getElementById('section-' + index);
+      if (active) {
+        active.classList.add('active');
+        active.classList.remove('hidden');
+        // Animasi masuk
+        if (window.anime) {
+          anime({
+            targets: active,
+            opacity: [0, 1],
+            translateX: [direction === 'prev' ? '-50px' : '50px', 0],
+            duration: 700,
+            easing: 'easeOutExpo',
+            complete: () => {
+              active.style.opacity = 1;
+              active.style.transform = 'translateX(0)';
+            }
+          });
+        } else {
+          active.style.opacity = 1;
+        }
+        // Tampilkan tombol navigasi hanya di section aktif
+        const prevBtn = active.querySelector('.nav-icon-button[id^="prev-btn-"]');
+        const nextBtn = active.querySelector('.nav-icon-button[id^="next-btn-"]');
+        if (prevBtn) {
+          prevBtn.style.visibility = 'visible';
+          prevBtn.disabled = index === 0;
+          prevBtn.onclick = prevSection;
+        }
+        if (nextBtn) {
+          nextBtn.style.visibility = 'visible';
+          nextBtn.disabled = index === data.sections.length - 1;
+          nextBtn.onclick = nextSection;
+        }
+        // Scroll ke atas setiap pindah section
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+    }
+
+    function nextSection() {
+      if (data.sections && currentSection < data.sections.length - 1) {
+        currentSection++;
+        showSection(currentSection, 'next');
+      }
+    }
+
+    function prevSection() {
+      if (data.sections && currentSection > 0) {
+        currentSection--;
+        showSection(currentSection, 'prev');
+      }
+    }
+
+    // ANIMASI GELEMBUNG LOVE PINK
+    function drawLove(ctx, x, y, size, alpha) {
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.scale(size, size);
+      ctx.globalAlpha = alpha;
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.bezierCurveTo(0, -0.3, -0.5, -0.3, -0.5, 0.2);
+      ctx.bezierCurveTo(-0.5, 0.5, 0, 0.7, 0, 1);
+      ctx.bezierCurveTo(0, 0.7, 0.5, 0.5, 0.5, 0.2);
+      ctx.bezierCurveTo(0.5, -0.3, 0, -0.3, 0, 0);
+      ctx.closePath();
+      ctx.fillStyle = 'rgba(255, 105, 180, 0.35)'; // pink transparan
+      ctx.fill();
+      ctx.restore();
+    }
+
+    function startLoveBubbles() {
+      const canvas = document.getElementById('love-bubbles');
+      if (!canvas) return;
+      const ctx = canvas.getContext('2d');
+      let W = window.innerWidth;
+      let H = window.innerHeight;
+      canvas.width = W;
+      canvas.height = H;
+
+      function resize() {
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = W;
+        canvas.height = H;
+      }
+      window.addEventListener('resize', resize);
+
+      const bubbles = [];
+      function spawnBubble() {
+        const x = Math.random() * W;
+        const size = 18 + Math.random() * 32;
+        const speed = 0.5 + Math.random() * 1.2;
+        const alpha = 0.18 + Math.random() * 0.22;
+        bubbles.push({
+          x,
+          y: H + size,
+          size: size / 32,
+          speed,
+          alpha,
+          drift: (Math.random() - 0.5) * 0.6
+        });
+      }
+
+      setInterval(spawnBubble, 600);
+
+      function animate() {
+        ctx.clearRect(0, 0, W, H);
+        for (let i = 0; i < bubbles.length; i++) {
+          const b = bubbles[i];
+          drawLove(ctx, b.x, b.y, b.size * 32, b.alpha);
+          b.y -= b.speed;
+          b.x += b.drift;
+          if (b.y < -40 || b.x < -40 || b.x > W + 40) {
+            bubbles.splice(i, 1);
+            i--;
+          }
+        }
+        requestAnimationFrame(animate);
+      }
+      animate();
+    }
+    window.addEventListener('DOMContentLoaded', startLoveBubbles);
+
+    loadStory();
+  </script>
+</body>
+</html>
