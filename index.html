@@ -194,6 +194,22 @@
           div.appendChild(title);
           div.appendChild(para);
 
+          // Tambahkan link ke Ra di akhir section terakhir
+          if (i === sectionCount - 1) {
+            const link = document.createElement('a');
+            link.href = 'https://emanam99.github.io/Ra/';
+            link.target = '_blank';
+            link.rel = 'noopener noreferrer';
+            link.style.display = 'block';
+            link.style.margin = '2rem auto 0 auto';
+            link.style.textAlign = 'center';
+            link.style.fontWeight = 'bold';
+            link.style.fontSize = '1.2rem';
+            link.style.color = '#ff69b4';
+            link.textContent = 'Link Halaman';
+            div.appendChild(link);
+          }
+
           // Navigation buttons
           const nav = document.createElement('div');
           nav.className = 'nav-buttons-inner';

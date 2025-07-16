@@ -117,5 +117,5 @@ Link itu masuk. Ra melirik notifikasi yang muncul di HP-nya.
 Judul linknya hanya satu baris:
 “Untukmu yang aku lupa, tapi tak pernah benar-benar kulupakan.”
 Dan saat Ra membukanya...
-…cerita ini dimulai.
+
 
