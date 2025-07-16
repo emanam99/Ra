@@ -30,6 +30,37 @@
       color: #fff;
       overflow-x: hidden;
     }
+    body.light-mode {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      color: #232526;
+    }
+    body.light-mode .section {
+      background: rgba(255,255,255,0.85);
+      color: #232526;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+    }
+    body.light-mode .section img {
+      background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+      box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+    }
+    body.light-mode .nav-icon-button {
+      background: #232526;
+      color: #fff;
+      box-shadow: 0 4px 15px rgba(0,0,0,0.10);
+    }
+    body.light-mode .nav-icon-button svg {
+      stroke: #fff;
+    }
+    body.light-mode #theme-toggle {
+      background: #232526;
+      color: #fff;
+    }
+    body.light-mode #theme-toggle:hover {
+      background: #444;
+    }
+    #theme-toggle:hover {
+      background: #f1f1f1;
+    }
     .section {
       display: none;
       flex-direction: column;
@@ -128,6 +159,11 @@
   </style>
 </head>
 <body>
+  <div id="theme-toggle-container" style="position:fixed; top:24px; right:32px; z-index:1001;">
+    <button id="theme-toggle" aria-label="Ganti mode gelap/terang" style="background:#fff; color:#232526; border:none; border-radius:50%; width:48px; height:48px; box-shadow:0 2px 8px rgba(0,0,0,0.12); cursor:pointer; font-size:1.5rem; display:flex; align-items:center; justify-content:center; transition:background 0.2s, color 0.2s;">
+      <span id="theme-icon">🌙</span>
+    </button>
+  </div>
   <div id="story"></div>
   <canvas id="love-bubbles" style="position:fixed; left:0; top:0; width:100vw; height:100vh; pointer-events:none; z-index:0;"></canvas>
 
@@ -389,6 +425,28 @@
       animate();
     }
     window.addEventListener('DOMContentLoaded', startLoveBubbles);
+
+    // THEME TOGGLE
+    function setTheme(mode) {
+      if (mode === 'light') {
+        document.body.classList.add('light-mode');
+        document.getElementById('theme-icon').textContent = '☀️';
+      } else {
+        document.body.classList.remove('light-mode');
+        document.getElementById('theme-icon').textContent = '🌙';
+      }
+      localStorage.setItem('theme', mode);
+    }
+    document.getElementById('theme-toggle').onclick = function() {
+      const isLight = document.body.classList.contains('light-mode');
+      setTheme(isLight ? 'dark' : 'light');
+    };
+    // Set theme on load
+    (function() {
+      const saved = localStorage.getItem('theme');
+      if (saved === 'light') setTheme('light');
+      else setTheme('dark');
+    })();
 
     loadStory();
   </script>
